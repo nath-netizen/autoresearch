@@ -18,6 +18,21 @@ matter, and the markdown program is the one a human edits and iterates on.
 
 ## Quick start
 
+**Try it with no API key (demo mode):**
+
+```bash
+python3 marsha/app.py
+# open http://localhost:8765
+```
+
+Without `ANTHROPIC_API_KEY` set, the server serves the full UI with scripted
+Marsha-style replies (keyword-routed: anger, anxiety, conflict, crisis,
+"teach me something") so you can test the chat, streaming, and the
+"speak replies" voice toggle end to end. Each demo conversation starts with a
+banner making clear the replies are canned.
+
+**Run with the real model:**
+
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
 uv run --with anthropic marsha/app.py
