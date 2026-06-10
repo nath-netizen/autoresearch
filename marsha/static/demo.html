@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marsha — DBT Skills Trainer (demo)</title>
+<style>
+  :root {
+    --bg: #f6f2ea; --ink: #2e2a25; --accent: #b4552d; --card: #fffdf8;
+    --marsha: #efe6d6; --user: #dce6e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    display: flex; flex-direction: column; height: 100dvh;
+  }
+  header {
+    padding: 14px 20px; border-bottom: 2px solid var(--accent);
+    background: var(--card); display: flex; align-items: baseline; gap: 12px;
+  }
+  header h1 { margin: 0; font-size: 1.3rem; font-weight: normal; }
+  header h1 em { color: var(--accent); }
+  header .sub { font-size: 0.78rem; color: #7a6f60; font-style: italic; }
+  header label {
+    margin-left: auto; font-size: 0.8rem; color: #7a6f60;
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    font-family: system-ui, sans-serif;
+  }
+  #chat { flex: 1; overflow-y: auto; padding: 18px; }
+  .msg {
+    max-width: 46rem; margin: 0 auto 12px; padding: 12px 16px;
+    border-radius: 10px; line-height: 1.55; white-space: pre-wrap;
+  }
+  .marsha { background: var(--marsha); border-left: 4px solid var(--accent); }
+  .user { background: var(--user); }
+  .who { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+         color: #8a7d6b; margin-bottom: 4px; font-family: system-ui, sans-serif; }
+  form {
+    display: flex; gap: 10px; padding: 14px 18px; background: var(--card);
+    border-top: 1px solid #e0d6c4;
+  }
+  textarea {
+    flex: 1; resize: none; font: inherit; padding: 10px 12px;
+    border: 1px solid #cbbfa9; border-radius: 8px; background: #fff;
+    max-width: 42rem; margin-left: auto;
+  }
+  button {
+    font-family: system-ui, sans-serif; font-size: 0.95rem; padding: 0 22px;
+    border: none; border-radius: 8px; background: var(--accent); color: #fff;
+    cursor: pointer; margin-right: auto;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .disclaimer {
+    max-width: 46rem; margin: 0 auto 14px; font-size: 0.78rem; color: #8a7d6b;
+    font-style: italic; text-align: center; padding: 0 10px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Marsha <em>— DBT skills trainer</em></h1>
+  <span class="sub">demo — scripted replies, no API key</span>
+  <label><input type="checkbox" id="voice"> speak replies</label>
+</header>
+
+<div id="chat">
+  <div class="disclaimer">
+    Standalone demo with scripted sample replies — try "I'm so angry",
+    "I'm anxious", "I had a fight with my friend", or "teach me something".
+    Marsha is an educational chatbot inspired by the published work of
+    Dr. Marsha Linehan. It is not her, not therapy, and not a crisis service.
+    If you are in crisis, call or text 988 (US) or your local emergency number.
+  </div>
+</div>
+
+<form id="form">
+  <textarea id="input" rows="2" placeholder="Tell Marsha what's going on, or ask for a skills training…"></textarea>
+  <button id="send" type="submit">Send</button>
+</form>
+
+<script>
+const FLOWS = [
+  [["suicid","kill myself","self-harm","self harm","hurt myself","cutting"],
+   "I hear how much pain you're in, and I'm glad you said it out loud — that took something. Listen to me: this chatbot is not the right help for this moment, and you deserve the real thing. Call or text 988 right now, or your local emergency number, and your therapist if you have one.\n\nWhile you reach out, one crisis skill as a bridge — TIPP: hold something cold to your face, or step outside into cold air. It drops your heart rate fast. Survive this moment without making it worse. That's the whole job right now."],
+  [["angry","anger","furious","rage","lash","yell"],
+   "Okay — anger. Given what happened, of course you're angry; that emotion is doing its job. AND acting on the urge is probably going to cost you something you care about. Both things are true.\n\nHere's a micro-training: Opposite Action, from emotion regulation. First, check the facts — does the anger fit the facts, and does acting on it work for you? If not, we act opposite: gently avoid the person instead of attacking, unclench the hands, half-smile, even a touch of kindness. It feels absurd. Do it anyway — the emotion follows the body.\n\nWant to walk through it with the actual situation? Tell me what set it off."],
+  [["anxious","anxiety","panic","worry","overwhelm","stress"],
+   "That sounds genuinely hard — and your body is reacting exactly the way a sensitive nervous system reacts. Nothing about you is broken; you're overwhelmed.\n\nSo first: is this a five-alarm fire or a slow burn? If your heart is pounding right now, we do TIPP — paced breathing, exhale longer than the inhale, four in, six out, for two minutes. If it's a slow burn, we go to mindfulness: Observe and Describe. Just the facts, no judgments — 'I notice my chest is tight. I notice the thought that I'll fail.' Thoughts are thoughts, not facts.\n\nWhich one is it — fire or burn?"],
+  [["friend","boyfriend","girlfriend","partner","mom","dad","boss","coworker","fight","argument","conflict","ask for","say no"],
+   "Relationships — where everybody's doing the best they can and it's still a mess. Before we pick a skill, one question, because it decides everything: in this conversation, what matters most — getting what you want (objectives), keeping the relationship, or keeping your self-respect? You rarely get to max all three.\n\nIf it's the objective, we build a DEAR MAN: Describe the facts, Express how you feel, Assert what you want, Reinforce why it's good for them too. If it's the relationship, GIVE: be Gentle, act Interested, Validate. If it's self-respect, FAST: be Fair, no over-Apologizing, Stick to your values, be Truthful.\n\nSo — which one is it?"],
+  [["teach","training","learn","skill","lesson","module"],
+   "Good — you came to learn. I like that. Here's the menu, pick what fits your life right now:\n\nMindfulness — finding Wise Mind, the place where reason and emotion overlap. Distress Tolerance — surviving a crisis without making it worse. Emotion Regulation — understanding emotions and turning their volume down. Interpersonal Effectiveness — asking, refusing, and keeping your self-respect while you do it.\n\nWhich one, and what's a real situation we can use as the worked example? Skills practiced on real life stick. Skills practiced in the abstract evaporate."],
+];
+const DEFAULT_REPLY =
+  "I'm listening — and I want to make sure I actually get it before we pick a skill. Two things can be true at once: what you're feeling makes complete sense given what's happening, AND there may be a more effective way through it. That's the whole game.\n\nTell me a little more: what happened, and what did you feel in your body when it did? Or, if you'd rather, just say 'teach me something' and I'll lay out the menu — mindfulness, distress tolerance, emotion regulation, or interpersonal effectiveness.";
+
+const chat = document.getElementById('chat');
+const form = document.getElementById('form');
+const input = document.getElementById('input');
+const send = document.getElementById('send');
+const voiceToggle = document.getElementById('voice');
+
+function addBubble(role, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'user' : 'marsha');
+  const who = document.createElement('div');
+  who.className = 'who';
+  who.textContent = role === 'user' ? 'You' : 'Marsha';
+  const body = document.createElement('div');
+  body.textContent = text;
+  div.append(who, body);
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return body;
+}
+
+let voice = null;
+function pickVoice() {
+  const vs = speechSynthesis.getVoices();
+  voice = vs.find(v => /female|samantha|karen|victoria|martha|serena/i.test(v.name) && v.lang.startsWith('en'))
+       || vs.find(v => v.lang.startsWith('en')) || null;
+}
+if ('speechSynthesis' in window) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+
+function speak(text) {
+  if (!voiceToggle.checked || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  if (voice) u.voice = voice;
+  u.rate = 0.92;
+  u.pitch = 0.9;
+  speechSynthesis.speak(u);
+}
+
+async function ask(text) {
+  addBubble('user', text);
+  const body = addBubble('marsha', '');
+  send.disabled = true;
+  const lower = text.toLowerCase();
+  const match = FLOWS.find(([keys]) => keys.some(k => lower.includes(k)));
+  const reply = match ? match[1] : DEFAULT_REPLY;
+  // Simulate streaming, word by word.
+  let full = '';
+  for (const word of reply.split(' ')) {
+    full += word + ' ';
+    body.textContent = full;
+    chat.scrollTop = chat.scrollHeight;
+    await new Promise(r => setTimeout(r, 22));
+  }
+  speak(full);
+  send.disabled = false;
+  input.focus();
+}
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text || send.disabled) return;
+  input.value = '';
+  ask(text);
+});
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+});
+</script>
+</body>
+</html>
