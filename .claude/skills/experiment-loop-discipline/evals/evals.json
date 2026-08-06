@@ -1,0 +1,26 @@
+{
+  "skill_name": "experiment-loop-discipline",
+  "evals": [
+    {
+      "id": 0,
+      "name": "noisy-llm-eval-loop",
+      "prompt": "i've got a script that mutates my summarization prompt and scores each version against 200 held-out examples with claude as the judge, then keeps whichever version scored higher. been letting it run for about 3 days now. the score went from 71 up to 78 which sounds great except when i actually read the summaries side by side its basically a wash, i cant tell them apart. the winning prompt is also full of weirdly specific stuff like 'use exactly 3 sentences' that i dont think is doing anything. what's going wrong here and how do i fix the loop",
+      "expected_output": "Diagnoses that the loop never measured judge/sampling noise and is selecting artifacts. Identifies metric (judge score, higher-better) and nuisance dimension (sampling seed, judge variation, possibly example order). Prescribes calibration runs to get sigma, a gate, and a probe. Should connect the 'weirdly specific' prompt additions to the specificity criterion. Concrete commands and a place to write the rule down.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "deterministic-metric-bailout",
+      "prompt": "im setting up an overnight agent loop for our frontend repo. plan is it edits webpack.config.js and tsconfig, runs `npm run build`, and keeps the change if dist/main.js got smaller in bytes. want to sanity check the keep/discard logic before i let it run unattended all weekend. is this accept rule solid?",
+      "expected_output": "Recognizes bundle size is deterministic, states sigma is 0 and the noise gate/probe would be wasted cost, and does NOT install the full machinery. Should still flag the specificity criterion as applicable, and may note genuinely non-deterministic risks (dependency resolution, build nondeterminism) worth verifying rather than assuming.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "audit-existing-results-log",
+      "prompt": "can you look at this and tell me if these gains are real? this is the log from my hyperparameter search agent, it trains a small model for 10 min per config and keeps whatever beats the current best val loss.\n\nrun  val_loss  kept  note\n001  2.4410    yes   baseline\n002  2.4389    yes   lr 3e-4 -> 2.8e-4\n003  2.4402    no    dropout 0.1\n004  2.4371    yes   lr 2.8e-4 -> 2.74e-4\n005  2.4368    yes   warmup 500 -> 480 steps\n006  2.4395    no    swap gelu for silu\n007  2.4351    yes   lr 2.74e-4 -> 2.71e-4\n\nso we went 2.4410 -> 2.4351 over the week. seems like the lr tuning is working?",
+      "expected_output": "Skeptical read: the accepted gains are tiny and monotonically shrinking, consistent with noise, and no noise floor was ever measured so the question is unanswerable from this table alone. Should notice the lr changes are increasingly specific (3e-4 -> 2.8e-4 -> 2.74e-4 -> 2.71e-4) as a textbook specificity red flag. Prescribes measuring sigma first via repeated baseline runs, and re-testing the accumulated changes against it.",
+      "files": []
+    }
+  ]
+}
