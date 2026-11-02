@@ -1,0 +1,280 @@
+<title>Wise Mind Coach</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one centered conversation column; header with a Wise Mind mark, pinned composer, crisis line always visible. */
+  :root {
+    --bg: #f3f5f4;
+    --surface: #ffffff;
+    --ink: #1c2a2e;
+    --muted: #5b6b6f;
+    --line: #d5dedd;
+    --accent: #1f6a73;
+    --accent-ink: #ffffff;
+    --you: #e3ecee;
+    --coach: #ffffff;
+    --alert-bg: #fbe9e4;
+    --alert-ink: #7a2412;
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121a1c; --surface: #1a2427; --ink: #e4ecec; --muted: #9aaaad;
+      --line: #2c3a3e; --accent: #5bb3ba; --accent-ink: #0d1517;
+      --you: #22343a; --coach: #1a2427; --alert-bg: #3a1f18; --alert-ink: #f3b8a6;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121a1c; --surface: #1a2427; --ink: #e4ecec; --muted: #9aaaad;
+    --line: #2c3a3e; --accent: #5bb3ba; --accent-ink: #0d1517;
+    --you: #22343a; --coach: #1a2427; --alert-bg: #3a1f18; --alert-ink: #f3b8a6;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  }
+  .app {
+    height: 100%; display: flex; flex-direction: column;
+    max-width: 46rem; margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding-block: 16px 12px; border-bottom: 1px solid var(--line);
+  }
+  header svg { flex: none; }
+  header h1 {
+    margin: 0; font-family: var(--font-display); font-weight: 600;
+    font-size: 1.45rem; letter-spacing: -0.01em; text-wrap: balance;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+  .crisis {
+    margin-top: 10px; padding: 8px 12px; border-radius: 8px;
+    background: var(--alert-bg); color: var(--alert-ink); font-size: 0.82rem;
+  }
+  .crisis strong { font-weight: 600; }
+  .crisis.loud { font-size: 0.95rem; padding: 12px 14px; }
+  #log {
+    flex: 1; overflow-y: auto; padding-block: 18px;
+    display: flex; flex-direction: column; gap: 12px; min-height: 0;
+  }
+  .msg {
+    padding: 11px 14px; border-radius: 12px; white-space: pre-wrap;
+    min-width: 0; overflow-wrap: anywhere; max-width: 88%;
+  }
+  .msg.you { align-self: flex-end; background: var(--you); }
+  .msg.coach { align-self: flex-start; background: var(--coach); border: 1px solid var(--line); }
+  .msg.coach.pending { color: var(--muted); font-style: italic; }
+  .who {
+    display: block; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 3px;
+  }
+  .note { font-size: 0.8rem; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font: inherit; font-size: 0.82rem; padding: 6px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  form {
+    display: flex; gap: 8px; align-items: flex-end;
+    padding-block: 12px max(14px, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+  }
+  textarea {
+    flex: 1; min-width: 0; resize: none; font: inherit; color: var(--ink);
+    padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); max-height: 9rem;
+  }
+  button.send, button.stop {
+    font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 10px;
+    border: none; cursor: pointer;
+  }
+  button.send { background: var(--accent); color: var(--accent-ink); }
+  button.stop { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="app">
+  <header>
+    <svg width="40" height="28" viewBox="0 0 40 28" aria-hidden="true">
+      <circle cx="14" cy="14" r="11" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <circle cx="26" cy="14" r="11" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <path d="M20 4.8 A11 11 0 0 1 20 23.2 A11 11 0 0 1 20 4.8 Z" fill="var(--accent)"/>
+    </svg>
+    <div>
+      <h1>Wise Mind Coach</h1>
+      <p>DBT skills practice, in the style of Linehan's approach. Educational only, not therapy.</p>
+    </div>
+  </header>
+  <div class="crisis" id="crisis">
+    In crisis? Call or text <strong>988</strong> (US) or your local emergency number. This coach is not a crisis service.
+  </div>
+
+  <div id="log" aria-live="polite">
+    <div class="msg coach"><span class="who">Coach</span>Hi. Tell me what's going on right now, or ask me to teach you a skill. We'll work with your actual situation, because skills practiced on real life are the ones that stick.</div>
+    <div class="chips" id="chips">
+      <button class="chip" type="button">I'm so angry at my mom right now</button>
+      <button class="chip" type="button">I need to ask my boss for time off</button>
+      <button class="chip" type="button">I'm overwhelmed and can't calm down</button>
+      <button class="chip" type="button">Teach me Wise Mind</button>
+    </div>
+  </div>
+
+  <form id="form">
+    <textarea id="input" rows="2" placeholder="What's going on?" aria-label="Your message"></textarea>
+    <button class="stop" id="stop" type="button" hidden>Stop</button>
+    <button class="send" id="send" type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+const RULES = `You are "Wise Mind Coach", an interactive DBT (Dialectical Behavior Therapy) skills trainer. You respond the way Dr. Marsha Linehan's published teaching models a skills trainer responding to a client: direct, warm, plain-spoken, occasionally irreverent, radically genuine, and dialectical. You are not Dr. Linehan; if asked, say you are an educational tool inspired by her approach. You are not therapy and not a crisis service.
+
+CRISIS RULE: if the user mentions suicidal thoughts, self-harm, or harming others, respond warmly without lecturing, urge them to call or text 988 (US) or their local emergency number now and to contact their therapist, then offer one crisis-survival skill (TIPP or STOP) as a bridge only.
+
+HOW TO RESPOND
+1. Validate first, choosing the right level: stay present, reflect back, read the unspoken, validate by history/biology, normalize, radical genuineness.
+2. Decide: crisis-survival moment (distress tolerance first; a dysregulated person cannot learn DEAR MAN mid-crisis) or a learning moment.
+3. Propose one specific skill, say in a sentence why it fits, and teach it one step at a time using the user's own situation. Ask for their input at each step.
+4. End a completed skill with one small, concrete practice assignment.
+Hold both sides: "you are doing the best you can AND you need to do better."
+
+CURRICULUM
+Mindfulness: reasonable mind + emotion mind = Wise Mind; What skills (Observe, Describe, Participate); How skills (Nonjudgmentally, One-mindfully, Effectively).
+Distress tolerance: STOP; TIPP (Temperature, Intense exercise, Paced breathing, Paired muscle relaxation); Pros & Cons; ACCEPTS distraction; Self-soothe; IMPROVE the moment; Radical Acceptance; Turning the Mind; Willingness; Half-smiling and Willing Hands.
+Emotion regulation: biosocial theory; model of emotions; ABC PLEASE; Check the Facts; Problem Solving; Opposite Action; the wave skill.
+Interpersonal effectiveness: pick the priority (objective, relationship, self-respect) and set intensity 1-10; DEAR MAN (Describe, Express, Assert, Reinforce, Mindful, Appear confident, Negotiate); GIVE (Gentle, Interested, Validate, Easy manner); FAST (Fair, no Apologies, Stick to values, Truthful); THINK for teens.
+Walking the Middle Path: both/and thinking; family dilemmas (too loose vs too strict, making light vs too much, forcing autonomy vs fostering dependence); validate before problem-solving. Not the right frame where there is abuse, neglect, or coercion: say so and point to real help.
+
+FORMAT: short and conversational, one step or one question at a time, plain text with no markdown headings or bold. A short list is fine when teaching an acronym.
+
+The conversation follows.`;
+
+const CRISIS_RE = /suicid|kill (my|me)self|end my life|want to die|self[- ]?harm|hurt(ing)? myself|cutting|overdose/i;
+
+const log = document.getElementById("log");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+const stop = document.getElementById("stop");
+const crisis = document.getElementById("crisis");
+const chips = document.getElementById("chips");
+
+const turns = [];
+let ctl = null;
+let samplePromise = window.claude ? window.claude.use("sample") : Promise.resolve(null);
+
+function bubble(role, text) {
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  const who = document.createElement("span");
+  who.className = "who";
+  who.textContent = role === "you" ? "You" : "Coach";
+  const body = document.createElement("span");
+  body.textContent = text;
+  div.append(who, body);
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return { div, body };
+}
+
+function note(text) {
+  const p = document.createElement("p");
+  p.className = "note";
+  p.textContent = text;
+  log.appendChild(p);
+  log.scrollTop = log.scrollHeight;
+}
+
+function busy(on) {
+  send.disabled = on;
+  stop.hidden = !on;
+}
+
+async function ask(text) {
+  chips.hidden = true;
+  if (CRISIS_RE.test(text)) {
+    crisis.classList.add("loud");
+    crisis.innerHTML = "<strong>If you are thinking about hurting yourself, please reach out now:</strong> call or text <strong>988</strong> (US), or your local emergency number. You deserve real support from a person.";
+  }
+  bubble("you", text);
+  turns.push({ role: "user", content: text });
+
+  const sample = await samplePromise;
+  if (!sample) {
+    note("The coach can only answer when this page is opened on claude.ai while signed in.");
+    return;
+  }
+
+  const reply = bubble("coach", "Thinking...");
+  reply.div.classList.add("pending");
+  busy(true);
+  ctl = new AbortController();
+  // Keep the conversation within budget: always keep the rules, drop the oldest turns.
+  const recent = turns.slice(-20);
+  if (recent[0].role !== "user") recent.shift();
+  try {
+    const { text: answer, truncated } = await sample(
+      [{ role: "user", content: RULES }, ...recent],
+      {
+        cache: false,
+        signal: ctl.signal,
+        onText: ({ text: t }) => {
+          reply.div.classList.remove("pending");
+          reply.body.textContent = t;
+          log.scrollTop = log.scrollHeight;
+        },
+      },
+    );
+    turns.push({ role: "assistant", content: answer });
+    if (truncated) note("That reply was cut short. Ask the coach to continue.");
+  } catch (e) {
+    reply.div.classList.remove("pending");
+    if (e.text) {
+      reply.body.textContent = e.text;
+      turns.push({ role: "assistant", content: e.text });
+    } else {
+      reply.div.remove();
+    }
+    const msgs = {
+      cancelled: "",
+      not_granted: "The coach needs permission to use Claude. Reload the page and choose Allow to chat.",
+      sampling_disabled: "Claude isn't available on this account, so the coach can't reply.",
+      rate_limited: "Too many messages at once. Wait a minute, then send again.",
+      session_expired: "You've been signed out. Sign in to claude.ai again to keep chatting.",
+      refused: "The coach couldn't respond to that message. Try rephrasing it.",
+    };
+    const m = e.code in msgs ? msgs[e.code] : "The reply was interrupted. Send your message again to retry.";
+    if (m) note(m);
+    if (["not_granted", "sampling_disabled"].includes(e.code)) input.disabled = true;
+  } finally {
+    busy(false);
+    input.focus();
+  }
+}
+
+form.addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const text = input.value.trim();
+  if (!text || send.disabled) return;
+  input.value = "";
+  ask(text);
+});
+input.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); form.requestSubmit(); }
+});
+stop.addEventListener("click", () => ctl?.abort());
+chips.addEventListener("click", (ev) => {
+  const b = ev.target.closest(".chip");
+  if (b && !send.disabled) ask(b.textContent);
+});
+</script>
