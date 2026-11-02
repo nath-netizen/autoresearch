@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wise-mind-coach",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // The chat page. Files here are served directly; /chat and /status reach the Worker.
+  "assets": { "directory": "./public" },
+
+  // Let the Worker import src/prompt.md as a string.
+  "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
+
+  // One global Durable Object holds rate-limit and spend counters.
+  "durable_objects": { "bindings": [{ "name": "LIMITER", "class_name": "Limiter" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Limiter"] }],
+
+  // Tunables. Secrets (ANTHROPIC_API_KEY, IP_SALT) are set with `wrangler secret put`.
+  "vars": {
+    "MODEL": "claude-haiku-4-5",
+    "MAX_TOKENS": "700",
+    "MESSAGES_PER_HOUR": "30",
+    "DAILY_BUDGET_USD": "1.00",
+    // Prices for MODEL in USD per million tokens; update if you change MODEL.
+    "INPUT_PRICE_PER_MTOK": "1",
+    "OUTPUT_PRICE_PER_MTOK": "5"
+  }
+}

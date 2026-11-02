@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wise Mind Coach</title>
+<meta name="description" content="Practice DBT skills in a short, guided chat. Educational only, not therapy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #f3f5f4; --surface: #ffffff; --ink: #1c2a2e; --muted: #5b6b6f;
+    --line: #d5dedd; --accent: #1f6a73; --accent-ink: #ffffff;
+    --you: #e3ecee; --coach: #ffffff; --alert-bg: #fbe9e4; --alert-ink: #7a2412;
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121a1c; --surface: #1a2427; --ink: #e4ecec; --muted: #9aaaad;
+      --line: #2c3a3e; --accent: #5bb3ba; --accent-ink: #0d1517;
+      --you: #22343a; --coach: #1a2427; --alert-bg: #3a1f18; --alert-ink: #f3b8a6;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  }
+  .app {
+    height: 100%; display: flex; flex-direction: column;
+    max-width: 46rem; margin: 0 auto;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding-block: 16px 12px; border-bottom: 1px solid var(--line);
+  }
+  header svg { flex: none; }
+  header h1 {
+    margin: 0; font-family: var(--font-display); font-weight: 600;
+    font-size: 1.45rem; letter-spacing: -0.01em; text-wrap: balance;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+  .crisis {
+    margin-top: 10px; padding: 8px 12px; border-radius: 8px;
+    background: var(--alert-bg); color: var(--alert-ink); font-size: 0.82rem;
+  }
+  .crisis strong { font-weight: 600; }
+  .crisis.loud { font-size: 0.95rem; padding: 12px 14px; }
+  #log {
+    flex: 1; overflow-y: auto; padding-block: 18px;
+    display: flex; flex-direction: column; gap: 12px; min-height: 0;
+  }
+  .msg {
+    padding: 11px 14px; border-radius: 12px; white-space: pre-wrap;
+    min-width: 0; overflow-wrap: anywhere; max-width: 88%;
+  }
+  .msg.you { align-self: flex-end; background: var(--you); }
+  .msg.coach { align-self: flex-start; background: var(--coach); border: 1px solid var(--line); }
+  .msg.coach.pending { color: var(--muted); font-style: italic; }
+  .who {
+    display: block; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 3px;
+  }
+  .note { font-size: 0.8rem; color: var(--muted); margin: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font: inherit; font-size: 0.82rem; padding: 6px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  form {
+    display: flex; gap: 8px; align-items: flex-end;
+    padding-block: 12px max(14px, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+  }
+  textarea {
+    flex: 1; min-width: 0; resize: none; font: inherit; color: var(--ink);
+    padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); max-height: 9rem;
+  }
+  button.send, button.stop {
+    font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 10px;
+    border: none; cursor: pointer;
+  }
+  button.send { background: var(--accent); color: var(--accent-ink); }
+  button.stop { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <svg width="40" height="28" viewBox="0 0 40 28" aria-hidden="true">
+      <circle cx="14" cy="14" r="11" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <circle cx="26" cy="14" r="11" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <path d="M20 4.8 A11 11 0 0 1 20 23.2 A11 11 0 0 1 20 4.8 Z" fill="var(--accent)"/>
+    </svg>
+    <div>
+      <h1>Wise Mind Coach</h1>
+      <p>DBT skills practice. Educational only, not therapy or a substitute for a clinician.</p>
+    </div>
+  </header>
+  <div class="crisis" id="crisis">
+    In crisis? Call or text <strong>988</strong> (US) or your local emergency number. This coach is not a crisis service.
+  </div>
+
+  <div id="log" aria-live="polite">
+    <div class="msg coach"><span class="who">Coach</span>Hi. Tell me what's going on right now, or ask me to teach you a skill. We'll work with your actual situation, because skills practiced on real life are the ones that stick.</div>
+    <div class="chips" id="chips">
+      <button class="chip" type="button">I'm so angry at my mom right now</button>
+      <button class="chip" type="button">I need to ask my boss for time off</button>
+      <button class="chip" type="button">I'm overwhelmed and can't calm down</button>
+      <button class="chip" type="button">Teach me Wise Mind</button>
+    </div>
+  </div>
+
+  <form id="form">
+    <textarea id="input" rows="2" maxlength="2000" placeholder="What's going on?" aria-label="Your message"></textarea>
+    <button class="stop" id="stop" type="button" hidden>Stop</button>
+    <button class="send" id="send" type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+const CRISIS_RE = /suicid|kill (my|me)self|end my life|want to die|self[- ]?harm|hurt(ing)? myself|cutting|overdose/i;
+const ERRORS = {
+  rate: "You've sent a lot of messages this hour. Take a break and come back a bit later.",
+  budget: "The coach has reached today's limit and will be back tomorrow. If you need support now, call or text 988.",
+  busy: "The coach is busy right now. Wait a moment, then send again.",
+  refused: "The coach couldn't respond to that message. Try rephrasing it.",
+  upstream: "The reply was interrupted. Send your message again to retry.",
+  bad_request: "That message couldn't be sent. Try a shorter message.",
+  network: "Couldn't reach the coach. Check your connection and try again.",
+};
+
+const log = document.getElementById("log");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+const stop = document.getElementById("stop");
+const crisis = document.getElementById("crisis");
+const chips = document.getElementById("chips");
+
+const turns = [];
+let ctl = null;
+
+function bubble(role, text) {
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  const who = document.createElement("span");
+  who.className = "who";
+  who.textContent = role === "you" ? "You" : "Coach";
+  const body = document.createElement("span");
+  body.textContent = text;
+  div.append(who, body);
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return { div, body };
+}
+
+function note(text) {
+  const p = document.createElement("p");
+  p.className = "note";
+  p.textContent = text;
+  log.appendChild(p);
+  log.scrollTop = log.scrollHeight;
+}
+
+function busy(on) {
+  send.disabled = on;
+  stop.hidden = !on;
+}
+
+async function ask(text) {
+  chips.hidden = true;
+  if (CRISIS_RE.test(text)) {
+    crisis.classList.add("loud");
+    crisis.innerHTML = "<strong>If you are thinking about hurting yourself, please reach out now:</strong> call or text <strong>988</strong> (US), or your local emergency number. You deserve real support from a person.";
+  }
+  bubble("you", text);
+  turns.push({ role: "user", content: text });
+
+  const reply = bubble("coach", "Thinking...");
+  reply.div.classList.add("pending");
+  busy(true);
+  ctl = new AbortController();
+  let full = "";
+  let error = null;
+
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: turns }),
+      signal: ctl.signal,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      error = data.error || "upstream";
+    } else {
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const events = buf.split("\n\n");
+        buf = events.pop();
+        for (const ev of events) {
+          if (!ev.startsWith("data: ")) continue;
+          const d = JSON.parse(ev.slice(6));
+          if (d.text) {
+            full += d.text;
+            reply.div.classList.remove("pending");
+            reply.body.textContent = full;
+            log.scrollTop = log.scrollHeight;
+          }
+          if (d.error) error = d.error;
+        }
+      }
+    }
+  } catch (e) {
+    if (e.name !== "AbortError") error = "network";
+  }
+
+  reply.div.classList.remove("pending");
+  if (full) {
+    turns.push({ role: "assistant", content: full });
+  } else {
+    reply.div.remove();
+    turns.pop(); // let the user resend the same message
+    if (!error && !ctl.signal.aborted) error = "upstream";
+  }
+  if (error === "refused") {
+    reply.div.remove();
+    if (full) turns.pop();
+  }
+  if (error) note(ERRORS[error] || ERRORS.upstream);
+  busy(false);
+  input.focus();
+}
+
+form.addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const text = input.value.trim();
+  if (!text || send.disabled) return;
+  input.value = "";
+  ask(text);
+});
+input.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); form.requestSubmit(); }
+});
+stop.addEventListener("click", () => ctl?.abort());
+chips.addEventListener("click", (ev) => {
+  const b = ev.target.closest(".chip");
+  if (b && !send.disabled) ask(b.textContent);
+});
+</script>
+</body>
+</html>
